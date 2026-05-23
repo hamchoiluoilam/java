@@ -304,3 +304,385 @@ public class Main {
         System.out.println(result);
     }
 }
+
+------Hoàn thiện bài
+import java.util.*;
+import java.io.*;
+import java.util.stream.*;
+import java.util.Locale;
+
+// =====================================================
+// ACCOUNT
+// =====================================================
+class Account {
+    protected String id;
+    protected double balance;
+
+    public Account(String id, double balance) {
+        this.id = id;
+        this.balance = balance;
+    }
+
+    public void deposit(double amt) {
+        balance += amt;
+    }
+
+    public double getBalance() {
+        return balance;
+    }
+}
+
+// =====================================================
+// SAVINGS ACCOUNT
+// =====================================================
+class SavingsAccount extends Account {
+    private double rate;
+
+    public SavingsAccount(String id,
+                          double balance,
+                          double rate) {
+        super(id, balance);
+        this.rate = rate;
+    }
+
+    public double balanceAfterYears(int years) {
+        return balance * Math.pow(1 + rate, years);
+    }
+}
+
+// =====================================================
+// THREAD
+// =====================================================
+class VarThread extends Thread {
+    private int[] arr;
+    private int start;
+    private int end;
+
+    public long localSum = 0;
+    public long localSumSq = 0;
+
+    public VarThread(int[] arr,
+                     int start,
+                     int end) {
+        this.arr = arr;
+        this.start = start;
+        this.end = end;
+    }
+
+    @Override
+    public void run() {
+        for (int i = start; i < end; i++) {
+            localSum += arr[i];
+            localSumSq += 1L * arr[i] * arr[i];
+        }
+    }
+}
+
+// =====================================================
+// MAIN
+// =====================================================
+public class Main {
+    public static void main(String[] args) throws Exception {
+
+        Locale.setDefault(Locale.US);
+
+        Scanner sc = new Scanner(System.in);
+
+        // =====================================================
+        // BAI 1 - SAVINGS ACCOUNT
+        // =====================================================
+
+        int N = sc.nextInt();
+
+        HashMap<String, SavingsAccount> map =
+                new HashMap<>();
+
+        for (int i = 0; i < N; i++) {
+
+            String id = sc.next();
+            double balance = sc.nextDouble();
+            double rate = sc.nextDouble();
+
+            map.put(id,
+                    new SavingsAccount(
+                            id,
+                            balance,
+                            rate
+                    ));
+        }
+
+        int M = sc.nextInt();
+
+        for (int i = 0; i < M; i++) {
+
+            String cmd = sc.next();
+
+            if (cmd.equals("DEPOSIT")) {
+
+                String id = sc.next();
+                double amt = sc.nextDouble();
+
+                SavingsAccount acc = map.get(id);
+
+                acc.deposit(amt);
+
+                System.out.printf(
+                        "%s %.2f\n",
+                        id,
+                        acc.getBalance()
+                );
+
+            } else if (cmd.equals("FORECAST")) {
+
+                String id = sc.next();
+                int years = sc.nextInt();
+
+                SavingsAccount acc = map.get(id);
+
+                System.out.printf(
+                        "%s %.2f\n",
+                        id,
+                        acc.balanceAfterYears(years)
+                );
+            }
+        }
+
+        // =====================================================
+        // BAI 2 - HASHMAP MAX VALUE
+        // =====================================================
+
+        int n2 = sc.nextInt();
+
+        HashMap<String, Integer> map2 =
+                new HashMap<>();
+
+        for (int i = 0; i < n2; i++) {
+
+            String key = sc.next();
+            int value = sc.nextInt();
+
+            map2.put(key, value);
+        }
+
+        String bestKey = "";
+
+        int bestValue = Integer.MIN_VALUE;
+
+        for (Map.Entry<String, Integer> entry
+                : map2.entrySet()) {
+
+            String key = entry.getKey();
+            int value = entry.getValue();
+
+            if (value > bestValue) {
+
+                bestValue = value;
+                bestKey = key;
+
+            } else if (value == bestValue
+                    && key.compareTo(bestKey) < 0) {
+
+                bestKey = key;
+            }
+        }
+
+        System.out.println(
+                bestKey + " " + bestValue);
+
+        // =====================================================
+        // BAI 3 - FILE CHUNK
+        // =====================================================
+
+        int chunkSize = sc.nextInt();
+
+        int n3 = sc.nextInt();
+
+        try {
+
+            FileOutputStream fos =
+                    new FileOutputStream("big.bin");
+
+            for (int i = 0; i < n3; i++) {
+
+                int x = sc.nextInt();
+
+                fos.write(x);
+            }
+
+            fos.close();
+
+            FileInputStream fis =
+                    new FileInputStream("big.bin");
+
+            byte[] buffer =
+                    new byte[chunkSize];
+
+            int bytesRead;
+
+            int chunkCount = 0;
+
+            while ((bytesRead =
+                    fis.read(buffer)) > 0) {
+
+                chunkCount++;
+
+                FileOutputStream chunkOut =
+                        new FileOutputStream(
+                                "chunk_"
+                                        + chunkCount
+                                        + ".bin"
+                        );
+
+                chunkOut.write(
+                        buffer,
+                        0,
+                        bytesRead
+                );
+
+                chunkOut.close();
+            }
+
+            fis.close();
+
+            int totalBytes = 0;
+
+            long sum = 0;
+
+            for (int i = 1;
+                 i <= chunkCount;
+                 i++) {
+
+                FileInputStream chunkIn =
+                        new FileInputStream(
+                                "chunk_"
+                                        + i
+                                        + ".bin"
+                        );
+
+                int value;
+
+                while ((value =
+                        chunkIn.read()) != -1) {
+
+                    totalBytes++;
+
+                    sum += value;
+                }
+
+                chunkIn.close();
+            }
+
+            System.out.println(
+                    "chunks: " + chunkCount);
+
+            System.out.println(
+                    "bytes: " + totalBytes);
+
+            System.out.println(
+                    "sum: " + sum);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        // =====================================================
+        // BAI 4 - VARIANCE THREAD
+        // =====================================================
+
+        int n4 = sc.nextInt();
+
+        int[] arr = new int[n4];
+
+        for (int i = 0; i < n4; i++) {
+            arr[i] = sc.nextInt();
+        }
+
+        int K = sc.nextInt();
+
+        VarThread[] threads =
+                new VarThread[K];
+
+        int size = n4 / K;
+
+        int start = 0;
+
+        for (int i = 0; i < K; i++) {
+
+            int end;
+
+            if (i == K - 1) {
+                end = n4;
+            } else {
+                end = start + size;
+            }
+
+            threads[i] =
+                    new VarThread(
+                            arr,
+                            start,
+                            end
+                    );
+
+            threads[i].start();
+
+            start = end;
+        }
+
+        long totalSum = 0;
+
+        long totalSumSq = 0;
+
+        for (int i = 0; i < K; i++) {
+
+            threads[i].join();
+
+            totalSum += threads[i].localSum;
+
+            totalSumSq += threads[i].localSumSq;
+        }
+
+        double variance =
+                (double) totalSumSq / n4
+                        - Math.pow(
+                        (double) totalSum / n4,
+                        2
+                );
+
+        System.out.printf(
+                "%.4f\n",
+                variance
+        );
+
+        // =====================================================
+        // BAI 5 - STREAM JOIN
+        // =====================================================
+
+        sc.nextLine();
+
+        int n5 =
+                Integer.parseInt(sc.nextLine());
+
+        List<String> list =
+                new ArrayList<>();
+
+        for (int i = 0; i < n5; i++) {
+
+            String s = sc.nextLine();
+
+            if (s.equals("_")) {
+                s = "";
+            }
+
+            list.add(s);
+        }
+
+        String result = list.stream()
+                .filter(s -> !s.isEmpty())
+                .collect(
+                        Collectors.joining(",")
+                );
+
+        System.out.println(result);
+    }
+}
+
