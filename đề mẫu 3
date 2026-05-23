@@ -1,0 +1,307 @@
+------Lớp MyDate với compareTo và daysBetween
+import java.util.*;
+
+class MyDate {
+    private int day;
+    private int month;
+    private int year;
+
+    public MyDate(int day, int month, int year) {
+        this.day = day;
+        this.month = month;
+        this.year = year;
+    }
+
+    public int compareTo(MyDate o) {
+        if (this.year != o.year) {
+            return this.year < o.year ? -1 : 1;
+        }
+
+        if (this.month != o.month) {
+            return this.month < o.month ? -1 : 1;
+        }
+
+        if (this.day != o.day) {
+            return this.day < o.day ? -1 : 1;
+        }
+
+        return 0;
+    }
+
+    public int daysBetween(MyDate o) {
+        return Math.abs(this.toDays() - o.toDays());
+    }
+
+    private int toDays() {
+        int days = 0;
+
+        for (int y = 1900; y < year; y++) {
+            days += isLeap(y) ? 366 : 365;
+        }
+
+        int[] monthDays = {
+            31,28,31,30,31,30,
+            31,31,30,31,30,31
+        };
+
+        for (int m = 1; m < month; m++) {
+            days += monthDays[m - 1];
+
+            if (m == 2 && isLeap(year)) {
+                days++;
+            }
+        }
+
+        days += day;
+
+        return days;
+    }
+
+    private boolean isLeap(int y) {
+        return (y % 4 == 0 && y % 100 != 0)
+                || (y % 400 == 0);
+    }
+
+    @Override
+    public String toString() {
+        return String.format("%02d/%02d/%04d",
+                day, month, year);
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        int Q = sc.nextInt();
+
+        for (int i = 0; i < Q; i++) {
+
+            int d1 = sc.nextInt();
+            int m1 = sc.nextInt();
+            int y1 = sc.nextInt();
+
+            int d2 = sc.nextInt();
+            int m2 = sc.nextInt();
+            int y2 = sc.nextInt();
+
+            String op = sc.next();
+
+            MyDate date1 = new MyDate(d1, m1, y1);
+            MyDate date2 = new MyDate(d2, m2, y2);
+
+            switch (op) {
+                case "CMP":
+                    int cmp = date1.compareTo(date2);
+
+                    if (cmp < 0) {
+                        System.out.println("LESS");
+                    } else if (cmp > 0) {
+                        System.out.println("GREATER");
+                    } else {
+                        System.out.println("EQUAL");
+                    }
+                    break;
+
+                case "DIFF":
+                    System.out.println(date1.daysBetween(date2));
+                    break;
+
+                case "FMT1":
+                    System.out.println(date1.toString());
+                    break;
+
+                case "FMT2":
+                    System.out.println(date2.toString());
+                    break;
+            }
+        }
+    }
+}
+
+
+------Sắp xếp ký tự trong chuỗi theo alphabet kèm số lần xuất hiện
+
+import java.util.*;
+
+public class Main {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        String s = sc.next();
+
+        TreeMap<Character, Integer> map = new TreeMap<>();
+
+        for (char c : s.toCharArray()) {
+            map.put(c, map.getOrDefault(c, 0) + 1);
+        }
+
+        for (Map.Entry<Character, Integer> entry : map.entrySet()) {
+            System.out.println(entry.getKey() + " " + entry.getValue());
+        }
+    }
+}
+
+------Thống kê ký tự từ file văn bản
+
+import java.io.*;
+import java.util.*;
+
+public class Main {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        String s = sc.nextLine();
+
+        try {
+            // Ghi vào file
+            BufferedWriter bw = new BufferedWriter(
+                    new FileWriter("input.txt"));
+
+            bw.write(s);
+            bw.close();
+
+            // Đọc lại file
+            BufferedReader br = new BufferedReader(
+                    new FileReader("input.txt"));
+
+            String content = br.readLine();
+            br.close();
+
+            int letters = 0;
+            int digits = 0;
+            int others = 0;
+
+            for (char c : content.toCharArray()) {
+                if (Character.isLetter(c)) {
+                    letters++;
+                } else if (Character.isDigit(c)) {
+                    digits++;
+                } else {
+                    others++;
+                }
+            }
+
+            System.out.println("Letters: " + letters);
+            System.out.println();
+            System.out.println("Digits: " + digits);
+            System.out.println();
+            System.out.println("Others: " + others);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+----Tìm số chính phương lớn nhất không vượt quá N trong mảng bằng đa luồng
+
+import java.util.*;
+
+class SquareFinder extends Thread {
+    private int[] arr;
+    private int start;
+    private int end;
+    private int L;
+
+    public int localBest = -1;
+
+    public SquareFinder(int[] arr, int start, int end, int L) {
+        this.arr = arr;
+        this.start = start;
+        this.end = end;
+        this.L = L;
+    }
+
+    private boolean isPerfectSquare(int x) {
+        int r = (int) Math.sqrt(x);
+
+        return r * r == x || (r + 1) * (r + 1) == x;
+    }
+
+    @Override
+    public void run() {
+        for (int i = start; i < end; i++) {
+            int x = arr[i];
+
+            if (x <= L && isPerfectSquare(x)) {
+                localBest = Math.max(localBest, x);
+            }
+        }
+    }
+}
+
+public class Main {
+    public static void main(String[] args) throws Exception {
+        Scanner sc = new Scanner(System.in);
+
+        int N = sc.nextInt();
+
+        int[] arr = new int[N];
+
+        for (int i = 0; i < N; i++) {
+            arr[i] = sc.nextInt();
+        }
+
+        int K = sc.nextInt();
+        int L = sc.nextInt();
+
+        SquareFinder[] threads = new SquareFinder[K];
+
+        int size = N / K;
+        int start = 0;
+
+        for (int i = 0; i < K; i++) {
+            int end;
+
+            if (i == K - 1) {
+                end = N;
+            } else {
+                end = start + size;
+            }
+
+            threads[i] = new SquareFinder(arr, start, end, L);
+            threads[i].start();
+
+            start = end;
+        }
+
+        int result = -1;
+
+        for (int i = 0; i < K; i++) {
+            threads[i].join();
+            result = Math.max(result, threads[i].localBest);
+        }
+
+        System.out.println(result);
+    }
+}
+
+------Tìm đồng thời giá trị lớn nhất và nhỏ nhất của mảng bằng IntStream
+
+import java.util.*;
+import java.util.stream.*;
+
+public class Main {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        int N = sc.nextInt();
+
+        int[] arr = new int[N];
+
+        for (int i = 0; i < N; i++) {
+            arr[i] = sc.nextInt();
+        }
+
+        int max = IntStream.of(arr).max().getAsInt();
+
+        int min = IntStream.of(arr).min().getAsInt();
+
+        int sum = max + min;
+
+        System.out.println("MAX " + max);
+        System.out.println("MIN " + min);
+        System.out.println("SUM " + sum);
+    }
+}
