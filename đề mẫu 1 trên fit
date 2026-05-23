@@ -265,3 +265,258 @@ public class Main {
         System.out.println("NONE " + none);
     }
 }
+
+---- Hoàn thiện cả bài 
+import java.util.*;
+import java.io.*;
+import java.util.stream.*;
+
+// ================= SUBJECT =================
+class Subject {
+    private String code;
+    private int credit;
+    private double score;
+
+    public Subject(String code, int credit, double score) {
+        this.code = code;
+        this.credit = credit;
+        this.score = score;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public int getCredit() {
+        return credit;
+    }
+
+    public double getScore() {
+        return score;
+    }
+
+    public double gradePoint() {
+        if (score >= 8.5) {
+            return 4.0;
+        } else if (score >= 7.0) {
+            return 3.0;
+        } else if (score >= 5.5) {
+            return 2.0;
+        } else if (score >= 4.0) {
+            return 1.0;
+        } else {
+            return 0.0;
+        }
+    }
+}
+
+// ================= THREAD =================
+class SumThread extends Thread {
+    private int[] arr;
+    private int start;
+    private int end;
+    private long sum = 0;
+
+    public SumThread(int[] arr, int start, int end) {
+        this.arr = arr;
+        this.start = start;
+        this.end = end;
+    }
+
+    public void run() {
+        for (int i = start; i < end; i++) {
+            sum += 1L * arr[i] * arr[i];
+        }
+    }
+
+    public long getSum() {
+        return sum;
+    }
+}
+
+// ================= MAIN =================
+public class Main {
+    public static void main(String[] args) throws Exception {
+        Scanner sc = new Scanner(System.in);
+
+        // ====================================================
+        // BAI 1 - SUBJECT + GPA
+        // ====================================================
+
+        int n1 = sc.nextInt();
+
+        ArrayList<Subject> subjects = new ArrayList<>();
+
+        double tong = 0;
+        int tongCredit = 0;
+
+        for (int i = 0; i < n1; i++) {
+            String code = sc.next();
+            int credit = sc.nextInt();
+            double score = sc.nextDouble();
+
+            Subject s = new Subject(code, credit, score);
+
+            subjects.add(s);
+
+            tong += s.getCredit() * s.gradePoint();
+            tongCredit += s.getCredit();
+        }
+
+        for (Subject s : subjects) {
+            System.out.printf("%s %.1f\n",
+                    s.getCode(),
+                    s.gradePoint());
+        }
+
+        double gpa = tong / tongCredit;
+
+        System.out.printf("GPA %.2f\n", gpa);
+
+        // ====================================================
+        // BAI 2 - PASS FAIL
+        // ====================================================
+
+        int n2 = sc.nextInt();
+
+        HashMap<String, Integer> map = new HashMap<>();
+
+        map.put("PASS", 0);
+        map.put("FAIL", 0);
+
+        for (int i = 0; i < n2; i++) {
+            String name = sc.next();
+            double score = sc.nextDouble();
+
+            if (score >= 5) {
+                map.put("PASS", map.get("PASS") + 1);
+            } else {
+                map.put("FAIL", map.get("FAIL") + 1);
+            }
+        }
+
+        System.out.println("PASS " + map.get("PASS"));
+        System.out.println("FAIL " + map.get("FAIL"));
+
+        // ====================================================
+        // BAI 3 - FILE BINARY
+        // ====================================================
+
+        int n3 = sc.nextInt();
+
+        try {
+            DataOutputStream dos =
+                    new DataOutputStream(
+                            new FileOutputStream("ints.bin"));
+
+            for (int i = 0; i < n3; i++) {
+                dos.writeInt(sc.nextInt());
+            }
+
+            dos.close();
+
+            DataInputStream dis =
+                    new DataInputStream(
+                            new FileInputStream("ints.bin"));
+
+            int min = Integer.MAX_VALUE;
+            int max = Integer.MIN_VALUE;
+
+            while (true) {
+                try {
+                    int x = dis.readInt();
+
+                    if (x < min) {
+                        min = x;
+                    }
+
+                    if (x > max) {
+                        max = x;
+                    }
+
+                } catch (EOFException e) {
+                    break;
+                }
+            }
+
+            dis.close();
+
+            System.out.println("min: " + min);
+            System.out.println("max: " + max);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        // ====================================================
+        // BAI 4 - MULTITHREAD
+        // ====================================================
+
+        int n4 = sc.nextInt();
+
+        int[] arr = new int[n4];
+
+        for (int i = 0; i < n4; i++) {
+            arr[i] = sc.nextInt();
+        }
+
+        int k = sc.nextInt();
+
+        SumThread[] threads = new SumThread[k];
+
+        int size = n4 / k;
+        int start = 0;
+
+        for (int i = 0; i < k; i++) {
+            int end;
+
+            if (i == k - 1) {
+                end = n4;
+            } else {
+                end = start + size;
+            }
+
+            threads[i] = new SumThread(arr, start, end);
+
+            threads[i].start();
+
+            start = end;
+        }
+
+        long total = 0;
+
+        for (int i = 0; i < k; i++) {
+            threads[i].join();
+
+            total += threads[i].getSum();
+        }
+
+        System.out.println(total);
+
+        // ====================================================
+        // BAI 5 - STREAM API
+        // ====================================================
+
+        int n5 = sc.nextInt();
+
+        List<Double> list = new ArrayList<>();
+
+        for (int i = 0; i < n5; i++) {
+            list.add(sc.nextDouble());
+        }
+
+        boolean any =
+                list.stream().anyMatch(x -> x >= 9);
+
+        boolean all =
+                list.stream().allMatch(x -> x >= 5);
+
+        boolean none =
+                list.stream()
+                        .noneMatch(x -> x < 0 || x > 10);
+
+        System.out.println("ANY " + any);
+        System.out.println("ALL " + all);
+        System.out.println("NONE " + none);
+    }
+}
