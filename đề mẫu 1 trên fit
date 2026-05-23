@@ -1,0 +1,267 @@
+------Quản lý môn học và điểm số với encapsulation
+
+import java.util.*;
+
+class Subject {
+    private String code;
+    private int credit;
+    private double score;
+
+    public Subject(String code, int credit, double score) {
+        this.code = code;
+        this.credit = credit;
+        this.score = score;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public int getCredit() {
+        return credit;
+    }
+
+    public double getScore() {
+        return score;
+    }
+
+    public double gradePoint() {
+        if (score >= 8.5) {
+            return 4.0;
+        } else if (score >= 7.0) {
+            return 3.0;
+        } else if (score >= 5.5) {
+            return 2.0;
+        } else if (score >= 4.0) {
+            return 1.0;
+        } else {
+            return 0.0;
+        }
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        int N = sc.nextInt();
+
+        ArrayList<Subject> list = new ArrayList<>();
+
+        double tong = 0;
+        int tongCredit = 0;
+
+        for (int i = 0; i < N; i++) {
+            String code = sc.next();
+            int credit = sc.nextInt();
+            double score = sc.nextDouble();
+
+            Subject s = new Subject(code, credit, score);
+            list.add(s);
+
+            tong += s.getCredit() * s.gradePoint();
+            tongCredit += s.getCredit();
+        }
+
+        for (Subject s : list) {
+            System.out.printf("%s %.1f\n", s.getCode(), s.gradePoint());
+        }
+
+        double GPA = tong / tongCredit;
+        System.out.printf("GPA %.2f", GPA);
+    }
+}
+
+
+------Đếm sinh viên đạt và không đạt theo ngưỡng điểm
+
+import java.util.*;
+
+public class Main {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        int N = sc.nextInt();
+
+        HashMap<String, Integer> map = new HashMap<>();
+        map.put("PASS", 0);
+        map.put("FAIL", 0);
+
+        for (int i = 0; i < N; i++) {
+            String name = sc.next();
+            double score = sc.nextDouble();
+
+            if (score >= 5.0) {
+           
+map.put("PASS", map.get("PASS") + 1);
+            } else {
+                map.put("FAIL", map.get("FAIL") + 1);
+            }
+        }
+
+        System.out.println("PASS " + map.get("PASS"));
+        System.out.println("FAIL " + map.get("FAIL"));
+    }
+}
+
+
+--------Ghi mảng số nguyên nhị phân, đọc lại và tìm min/max
+
+import java.io.*;
+import java.util.*;
+
+public class Main {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        int N = sc.nextInt();
+
+        try {
+            // Ghi file
+            DataOutputStream dos = new DataOutputStream(
+                    new FileOutputStream("ints.bin"));
+
+            for (int i = 0; i < N; i++) {
+                int x = sc.nextInt();
+                dos.writeInt(x);
+            }
+
+            dos.close();
+
+            // Đọc file
+            DataInputStream dis = new DataInputStream(
+                    new FileInputStream("ints.bin"));
+
+            int min = Integer.MAX_VALUE;
+            int max = Integer.MIN_VALUE;
+
+            while (true) {
+                try {
+                    int x = dis.readInt();
+
+                    if (x < min) {
+                        min = x;
+                    }
+
+                    if (x > max) {
+                        max = x;
+                    }
+
+                } catch (EOFException e) {
+                    break;
+                }
+            }
+
+            dis.close();
+
+            System.out.println("min: " + min);
+            System.out.println("max: " + max);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+
+--------Tính tổng bình phương các số lớn bằng đa luồng
+import java.util.*;
+
+class SumThread extends Thread {
+    private int[] arr;
+    private int start;
+    private int end;
+    private long sum = 0;
+
+    public SumThread(int[] arr, int start, int end) {
+        this.arr = arr;
+        this.start = start;
+        this.end = end;
+    }
+
+    public void run() {
+        for (int i = start; i < end; i++) {
+            sum += 1L * arr[i] * arr[i];
+        }
+    }
+
+    public long getSum() {
+        return sum;
+    }
+}
+
+public class Main {
+    public static void main(String[] args) throws Exception {
+        Scanner sc = new Scanner(System.in);
+
+        int N = sc.nextInt();
+
+        int[] arr = new int[N];
+
+        for (int i = 0; i < N; i++) {
+            arr[i] = sc.nextInt();
+        }
+
+        int K = sc.nextInt();
+
+        SumThread[] threads = new SumThread[K];
+
+        int size = N / K;
+        int start = 0;
+
+        for (int i = 0; i < K; i++) {
+            int end;
+
+            if (i == K - 1) {
+                end = N;
+            } else {
+                end = start + size;
+            }
+
+            threads[i] = new SumThread(arr, start, end);
+            threads[i].start();
+
+            start = end;
+        }
+
+        long total = 0;
+
+        for (int i = 0; i < K; i++) {
+            threads[i].join();
+            total += threads[i].getSum();
+        }
+
+        System.out.println(total);
+    }
+}
+
+
+
+-------- Kiểm tra điều kiện điểm bằng anyMatch allMatch noneMatch
+import java.util.*;
+import java.util.stream.*;
+
+public class Main {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        int N = sc.nextInt();
+
+        List<Double> list = new ArrayList<>();
+
+        for (int i = 0; i < N; i++) {
+            list.add(sc.nextDouble());
+        }
+
+        boolean any = list.stream().anyMatch(x -> x >= 9);
+
+        boolean all = list.stream().allMatch(x -> x >= 5);
+
+        boolean none = list.stream()
+                           .noneMatch(x -> x < 0 || x > 10);
+
+        System.out.println("ANY " + any);
+        System.out.println("ALL " + all);
+        System.out.println("NONE " + none);
+    }
+}
