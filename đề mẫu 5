@@ -1,0 +1,296 @@
+---- Quản lý phòng khách sạn Single/Double/Suite
+
+  import java.util.*;
+
+abstract class Room {
+    protected String code;
+    protected int basePrice;
+
+    public Room(String code, int basePrice) {
+        this.code = code;
+        this.basePrice = basePrice;
+    }
+
+    abstract int totalPrice(int nights);
+}
+
+class Single extends Room {
+    public Single(String code, int basePrice) {
+        super(code, basePrice);
+    }
+
+    @Override
+    int totalPrice(int nights) {
+        return basePrice * nights;
+    }
+}
+
+class DoubleRoom extends Room {
+    public DoubleRoom(String code, int basePrice) {
+        super(code, basePrice);
+    }
+
+    @Override
+    int totalPrice(int nights) {
+        return basePrice * nights * 2;
+    }
+}
+
+class Suite extends Room {
+    public Suite(String code, int basePrice) {
+        super(code, basePrice);
+    }
+
+    @Override
+    int totalPrice(int nights) {
+        return basePrice * nights * 3 + 200000;
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        int N = sc.nextInt();
+
+        HashMap<String, Room> map = new HashMap<>();
+
+        for (int i = 0; i < N; i++) {
+            String type = sc.next();
+            String code = sc.next();
+            int basePrice = sc.nextInt();
+
+            if (type.equals("SINGLE")) {
+                map.put(code, new Single(code, basePrice));
+            } else if (type.equals("DOUBLE")) {
+                map.put(code, new DoubleRoom(code, basePrice));
+            } else if (type.equals("SUITE")) {
+                map.put(code, new Suite(code, basePrice));
+            }
+        }
+
+        int M = sc.nextInt();
+
+        long revenue = 0;
+
+        for (int i = 0; i < M; i++) {
+            String code = sc.next();
+            int nights = sc.nextInt();
+
+            Room room = map.get(code);
+
+            int total = room.totalPrice(nights);
+
+            revenue += total;
+
+            System.out.println(code + " " + total);
+        }
+
+        System.out.println("REVENUE " + revenue);
+    }
+}
+
+---- Quản lý danh sách sinh viên bằng ArrayList có sử dụng Generics
+
+import java.util.*;
+
+class Student {
+    private String name;
+    private int age;
+    private double score;
+
+    public Student(String name, int age, double score) {
+        this.name = name;
+        this.age = age;
+        this.score = score;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public int getAge() {
+        return age;
+    }
+
+    public double getScore() {
+        return score;
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        int N = sc.nextInt();
+
+        ArrayList<Student> list = new ArrayList<>();
+
+        for (int i = 0; i < N; i++) {
+            String name = sc.next();
+            int age = sc.nextInt();
+            double score = sc.nextDouble();
+
+            list.add(new Student(name, age, score));
+        }
+
+        Student best = list.get(0);
+
+        for (Student s : list) {
+            if (s.getScore() > best.getScore()) {
+                best = s;
+            }
+        }
+
+        System.out.println("Name: " + best.getName());
+        System.out.println();
+        System.out.println("Age: " + best.getAge());
+        System.out.println();
+        System.out.println("Score: " + best.getScore());
+    }
+}
+----Đọc và in nội dung file theo thứ tự dòng ngược
+
+import java.io.*;
+import java.util.*;
+
+public class Main {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        try {
+            // Ghi file
+            BufferedWriter bw = new BufferedWriter(
+                    new FileWriter("data.txt"));
+
+            while (sc.hasNextLine()) {
+                String line = sc.nextLine();
+                bw.write(line);
+                bw.newLine();
+            }
+
+            bw.close();
+
+            // Đọc file
+            BufferedReader br = new BufferedReader(
+                    new FileReader("data.txt"));
+
+            ArrayList<String> list = new ArrayList<>();
+
+            String line;
+
+            while ((line = br.readLine()) != null) {
+                list.add(line);
+            }
+
+            br.close();
+
+            // In ngược
+            Collections.reverse(list);
+
+            for (String s : list) {
+                System.out.println(s);
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+----Hai thread in xen kẽ chuỗi A và B N lần bằng synchronized
+
+import java.util.*;
+
+public class Main {
+
+    static Object lock = new Object();
+    static int turn = 0;
+    static StringBuilder sb = new StringBuilder();
+
+    public static void main(String[] args) throws Exception {
+        Scanner sc = new Scanner(System.in);
+
+        int N = sc.nextInt();
+
+        Thread A = new Thread(() -> {
+            for (int i = 0; i < N; i++) {
+                synchronized (lock) {
+
+                    while (turn != 0) {
+                        try {
+                            lock.wait();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                    sb.append("A");
+
+                    turn = 1;
+
+                    lock.notifyAll();
+                }
+            }
+        });
+
+        Thread B = new Thread(() -> {
+            for (int i = 0; i < N; i++) {
+                synchronized (lock) {
+
+                    while (turn != 1) {
+                        try {
+                            lock.wait();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                    sb.append("B");
+
+                    turn = 0;
+
+                    lock.notifyAll();
+                }
+            }
+        });
+
+        A.start();
+        B.start();
+
+        A.join();
+        B.join();
+
+        System.out.println(sb);
+    }
+}
+----Kiểm tra điều kiện điểm bằng anyMatch allMatch noneMatch
+
+  import java.util.*;
+import java.util.stream.*;
+
+public class Main {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        int N = sc.nextInt();
+
+        List<Double> list = new ArrayList<>();
+
+        for (int i = 0; i < N; i++) {
+            list.add(sc.nextDouble());
+        }
+
+        boolean any = list.stream()
+                .anyMatch(x -> x >= 9);
+
+        boolean all = list.stream()
+                .allMatch(x -> x >= 5);
+
+        boolean none = list.stream()
+                .noneMatch(x -> x < 0 || x > 10);
+
+        System.out.println("ANY " + any);
+        System.out.println("ALL " + all);
+        System.out.println("NONE " + none);
+    }
+}
