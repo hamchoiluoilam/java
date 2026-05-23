@@ -1,0 +1,344 @@
+--------Chương trình quản lý nhân sự sử dụng lớp trừu tượng và kế thừa
+import java.util.*;
+import java.time.*;
+
+abstract class Employee {
+    private String name;
+    private LocalDate started;
+
+    public Employee(String name, LocalDate started) {
+        this.name = name;
+        this.started = started;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public LocalDate getStarted() {
+        return started;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setStarted(LocalDate started) {
+        this.started = started;
+    }
+
+    abstract void showInfo();
+
+    abstract double calcSalary();
+}
+
+class FullTimeEmployee extends Employee {
+    private double monthlySalary;
+    private double bonus;
+
+    public FullTimeEmployee(String name, LocalDate started,
+                            double monthlySalary, double bonus) {
+        super(name, started);
+        this.monthlySalary = monthlySalary;
+        this.bonus = bonus;
+    }
+
+    @Override
+    double calcSalary() {
+        return monthlySalary + bonus;
+    }
+
+    @Override
+    void showInfo() {
+        System.out.println("=== Nhân viên Full-Time ===");
+        System.out.println("Tên: " + getName());
+        System.out.println("Ngày bắt đầu: " + getStarted());
+        System.out.println("Lương cơ bản: " + monthlySalary);
+        System.out.println("Thưởng: " + bonus);
+        System.out.println("Lương thực nhận: " + calcSalary());
+    }
+}
+
+class PartTimeEmployee extends Employee {
+    private int workingHour;
+    private double rate;
+
+    public PartTimeEmployee(String name, LocalDate started,
+                            int workingHour, double rate) {
+        super(name, started);
+        this.workingHour = workingHour;
+        this.rate = rate;
+    }
+
+    @Override
+    double calcSalary() {
+        return workingHour * rate;
+    }
+
+    @Override
+    void showInfo() {
+        System.out.println("=== Nhân viên Part-Time ===");
+        System.out.println("Tên: " + getName());
+        System.out.println("Ngày bắt đầu: " + getStarted());
+        System.out.println("Số giờ làm: " + workingHour);
+        System.out.println("Đơn giá/giờ: " + rate);
+        System.out.println("Lương thực nhận: " + calcSalary());
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        // FullTimeEmployee
+        String name1 = sc.nextLine();
+        LocalDate started1 = LocalDate.parse(sc.nextLine());
+        double monthlySalary = sc.nextDouble();
+        double bonus = sc.nextDouble();
+        sc.nextLine();
+
+        // PartTimeEmployee
+        String name2 = sc.nextLine();
+        LocalDate started2 = LocalDate.parse(sc.nextLine());
+        int workingHour = sc.nextInt();
+        double rate = sc.nextDouble();
+
+        Employee ft = new FullTimeEmployee(
+                name1, started1, monthlySalary, bonus);
+
+        Employee pt = new PartTimeEmployee(
+                name2, started2, workingHour, rate);
+
+        ft.showInfo();
+        System.out.println();
+        pt.showInfo();
+    }
+}
+
+
+-------Đảo ngược danh sách số nguyên bằng Collections.reverse
+
+import java.util.*;
+
+public class Main {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        int N = sc.nextInt();
+
+        ArrayList<Integer> list = new ArrayList<>();
+
+        for (int i = 0; i < N; i++) {
+            list.add(sc.nextInt());
+        }
+
+        Collections.reverse(list);
+
+        for (int x : list) {
+            System.out.print(x + " ");
+        }
+    }
+}
+
+------Ghi danh sách số thực và tính trung bình (DataOutputStream / DataInputStream)
+
+import java.io.*;
+import java.util.*;
+
+public class Main {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        int N = sc.nextInt();
+
+        try {
+            // Ghi file
+            DataOutputStream dos = new DataOutputStream(
+                    new FileOutputStream("double.dat"));
+
+            for (int i = 0; i < N; i++) {
+                double x = sc.nextDouble();
+                dos.writeDouble(x);
+            }
+
+            dos.close();
+
+            // Đọc file
+            DataInputStream dis = new DataInputStream(
+                    new FileInputStream("double.dat"));
+
+            double sum = 0;
+            int count = 0;
+
+            try {
+                while (true) {
+                    double x = dis.readDouble();
+                    sum += x;
+                    count++;
+                }
+            } catch (EOFException e) {
+                // Kết thúc file
+            }
+
+            dis.close();
+
+            double avg = sum / count;
+
+            System.out.printf("Average: %.2f", avg);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+------Tính tổng các số chẵn bằng THREAD
+
+import java.util.*;
+
+class EvenSumThread extends Thread {
+    private int[] arr;
+    private int start;
+    private int end;
+    private long sum = 0;
+
+    public EvenSumThread(int[] arr, int start, int end) {
+        this.arr = arr;
+        this.start = start;
+        this.end = end;
+    }
+
+    @Override
+    public void run() {
+        for (int i = start; i < end; i++) {
+            if (arr[i] % 2 == 0) {
+                sum += arr[i];
+            }
+        }
+    }
+
+    public long getSum() {
+        return sum;
+    }
+}
+
+public class Main {
+    public static void main(String[] args) throws Exception {
+        Scanner sc = new Scanner(System.in);
+
+        int N = sc.nextInt();
+
+        int[] arr = new int[N];
+
+        for (int i = 0; i < N; i++) {
+            arr[i] = sc.nextInt();
+        }
+
+        int K = sc.nextInt();
+
+        EvenSumThread[] threads = new EvenSumThread[K];
+
+        int size = N / K;
+        int start = 0;
+
+        for (int i = 0; i < K; i++) {
+            int end;
+
+            if (i == K - 1) {
+                end = N;
+            } else {
+                end = start + size;
+            }
+
+            threads[i] = new EvenSumThread(arr, start, end);
+            threads[i].start();
+
+            start = end;
+        }
+
+        long total = 0;
+
+        for (int i = 0; i < K; i++) {
+            threads[i].join();
+            total += threads[i].getSum();
+        }
+
+        System.out.println(total);
+    }
+}
+
+------ Lọc và sắp xếp danh sách sản phẩm theo giá bằng Stream API
+
+import java.util.*;
+import java.util.stream.*;
+
+class Product {
+    private String name;
+    private String category;
+    private double price;
+    private int stock;
+
+    public Product(String name, String category,
+                   double price, int stock) {
+        this.name = name;
+        this.category = category;
+        this.price = price;
+        this.stock = stock;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public double getPrice() {
+        return price;
+    }
+
+    public int getStock() {
+        return stock;
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        int N = sc.nextInt();
+
+        List<Product> list = new ArrayList<>();
+
+        for (int i = 0; i < N; i++) {
+            String name = sc.next();
+            String category = sc.next();
+            double price = sc.nextDouble();
+            int stock = sc.nextInt();
+
+            list.add(new Product(name, category, price, stock));
+        }
+
+        double minPrice = sc.nextDouble();
+
+        List<String> result = list.stream()
+                .filter(p -> p.getStock() > 0)
+                .filter(p -> p.getPrice() >= minPrice)
+                .sorted((a, b) -> {
+                    if (Double.compare(b.getPrice(), a.getPrice()) == 0) {
+                        return a.getName().compareTo(b.getName());
+                    }
+                    return Double.compare(b.getPrice(), a.getPrice());
+                })
+                .map(p -> String.format("%s|%s|%.2f",
+                        p.getName(),
+                        p.getCategory(),
+                        p.getPrice()))
+                .collect(Collectors.toList());
+
+        result.forEach(System.out::println);
+
+        System.out.println("COUNT " + result.size());
+    }
+}
